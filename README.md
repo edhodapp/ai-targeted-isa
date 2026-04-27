@@ -45,7 +45,12 @@ unwinds.
    this repo (yours and ours). Captures the project axioms in a form that
    AI tooling can read at session start.
 
-4. **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — how to contribute, including
+4. **[`pipeline_design.md`](pipeline_design.md)** — the meta-design: how
+   intent becomes an audited artifact, the stage abstraction, the audit
+   DAG, and the CD-first protocol for adding new artifact types. Per
+   D006, the AI-compiler pipeline IS the project's CD pipeline.
+
+5. **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — how to contribute, including
    DCO sign-off and decision-log discipline.
 
 ## Project status

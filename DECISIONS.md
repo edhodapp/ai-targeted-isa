@@ -165,3 +165,56 @@ to flow into commercial silicon implementations, not network-served
 software; AGPL §13 has no purchase. (b) Outside collaboration is the
 explicit goal — an AGPL repo with a "no contributions" stance and
 commercial-license-required path is incompatible with that.
+
+## D006 — The AI-compiler pipeline IS the project's CD pipeline
+
+**Date:** 2026-04-27 21:25 UTC
+
+The multi-stage AI code-generation pipeline (D003) and the project's CD
+pipeline are not two different systems. They are **the same system** viewed
+at different scales.
+
+**The isomorphism.** A CD pipeline is `source → build → gate → deploy`,
+producing artifacts (binaries, packages, deployments) with provenance
+tying each artifact back to a source commit. The AI-compiler pipeline is
+`intent → transformation → gate → emit`, producing code artifacts
+(eventually ISA-targeted asm) with provenance — the audit DAG (D003) —
+tying each instruction back to design intent. The shapes match. The DAG
+is the structural memory of the pipeline; gate-passes are facts recorded
+against artifact nodes.
+
+**Consequences.**
+
+1. **The current CI is the embryonic pipeline.** Markdownlint + lychee
+   today are not "infrastructure that surrounds the design work." They
+   *are* the pipeline at its current scope, where the only artifact type
+   is markdown. Adding new artifact types means adding new pipeline
+   stages.
+
+2. **CD-first applies per artifact type, not just project-wide.** When
+   the project starts emitting Python (e.g. for a simulator), the Python
+   gates — pylint, mypy, pytest, branch coverage, hooks, CI integration —
+   land *before* any Python file. When the project starts emitting
+   ISA-targeted asm, the asm gates (ISA validity, functional equivalence
+   to intent) land before any asm. **No exceptions.** The "CD-first for
+   deliverables" rule from Ed's other projects applies here at higher
+   resolution: each artifact type within the pipeline is independently
+   CD-first.
+
+3. **The audit DAG is not a sidecar.** It is the project's memory of
+   what artifacts exist, how they derived from each other, and which
+   gates each one passed. Implementation details (where the DAG lives,
+   how it's queried, what intermediate forms it captures) are open
+   questions in the pipeline design, but the structural role is fixed.
+
+**Why this framing now.** Without it, future contributors (and future
+sessions) might treat "CD/CI" and "AI compiler pipeline" as separate
+concerns and end up with two parallel provenance systems, two parallel
+gate sets, and ambiguity about which one is authoritative. Naming them
+as one thing forecloses that drift.
+
+**How this shapes task #1 (pipeline framing).** The pipeline design must
+specify (a) the stage abstraction, (b) the audit DAG schema, (c) the
+artifact-type plug-in protocol, and (d) the CD-first sequencing rule
+for adding new artifact types. The current markdown-only state and the
+eventual asm-emission state are both points on the same trajectory.
