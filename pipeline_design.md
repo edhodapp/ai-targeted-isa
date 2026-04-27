@@ -155,29 +155,33 @@ Each node carries facts:
 - **status** — current (live), deprecated (annotated by a successor),
   withdrawn (deleted from the corpus, but the node persists).
 
-### Where the DAG lives — open question
+### Where the DAG lives — resolved by D007
 
-Three plausible implementations, each with trade-offs:
+This was the largest open question when this document was first written;
+it was resolved by [D007](DECISIONS.md) in favour of the
+YAML/pydantic/audit-tool pattern proven in `~/iomoments/tooling/`.
 
-1. **Git history is the DAG.** Commits are nodes; commit messages encode
-   facts; merge structure encodes some derivation. Pro: zero new
-   infrastructure. Con: too coarse — multiple artifacts per commit,
-   no per-artifact gate history within a commit.
-2. **Sidecar JSON / SQLite database.** Tracked or untracked file that
-   accumulates DAG state over time. Pro: queryable; can record
-   per-artifact facts. Con: parallel source of truth that can drift
-   from git.
-3. **Frontmatter in each artifact file.** YAML-style header in each
-   `.md` (and eventually each `.py`, `.S`) recording provenance, gate
-   history, supersession links. Pro: provenance lives with the artifact;
-   git history shows DAG evolution. Con: noise in source files; gate
-   history grows unboundedly.
+The resolution in summary: a single hand-edited YAML file is the
+authoring surface; pydantic validates the schema; a build tool produces
+a content-hash-gated JSON snapshot that is the canonical artifact for
+downstream tooling; a separate audit binary resolves every reference
+against the actual repo and reports drift. Every entry carries a status
+lifecycle (`spec | tested | implemented | deviation | n_a`) plus
+implementation and verification refs. The audit tool flags
+`status≠spec` with empty refs as a "provable lie" — the discipline
+that lets the ontology lead the implementation honestly.
 
-A combined approach is likely: frontmatter for provenance and
-supersession (lives with the artifact), sidecar for gate-pass history
-(append-only, never read by humans except in audit). This is **task #1.5**
-implicitly — the DAG implementation choice is its own design question
-and should get its own decision-log entry when it's resolved.
+The three alternatives originally sketched here (git-history-as-DAG,
+sidecar JSON / SQLite, frontmatter per file) are recorded in D007 as
+the alternatives considered. The iomoments pattern is essentially a
+refinement of "sidecar JSON" with the authoring surface lifted to YAML
+for human editability and pydantic added for type safety; the status
+lifecycle and the audit tool's drift detection are the inventions that
+make this pattern qualitatively better than a passive sidecar.
+
+This pattern requires Python as a new artifact type. Per [D006](DECISIONS.md)
+the Python gates land before any pydantic; that installation plan is
+[D008](DECISIONS.md).
 
 ## Adding a new artifact type — the protocol
 
@@ -229,8 +233,9 @@ hygiene:
 These are deferred to subsequent decision-log entries and design
 documents. Listed here so they don't get lost.
 
-1. **DAG implementation choice.** Frontmatter? Sidecar? Hybrid? See
-   the "open question" subsection above.
+1. **DAG implementation choice.** ~~Frontmatter? Sidecar? Hybrid?~~
+   **Resolved by D007** (adopt iomoments YAML + pydantic + audit
+   pattern). Implementation gated on D008 (Python tooling installation).
 2. **Intent representation.** Free-form prose in conversation has worked
    so far. Does it scale? Should there be a schema for intent statements
    (problem, constraints, success criteria)?
