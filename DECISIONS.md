@@ -24,6 +24,7 @@ in one step.
 ---
 
 ## D001 — Treat `~/hwdesign/cpu` as exploratory blue-sky, not a deliverable
+
 **Date:** 2026-04-27 18:50 UTC
 
 The directory sits in `~/hwdesign/`, sibling-shaped to `~/math/` subdirs.
@@ -40,6 +41,7 @@ rule — re-derive its pipeline rather than copy-pasting from this exploratory
 work.
 
 ## D002 — Design lens: the ideal ISA assumes AI writes the assembly
+
 **Date:** 2026-04-27 18:55 UTC
 
 The exploration is framed by the question: *what does an ISA look like when
@@ -63,6 +65,7 @@ effect annotations, etc.) and into the memory hierarchy's treatment as
 software-managed rather than hardware-guessed.
 
 ## D003 — AI-as-compiler pipeline is a co-equal design artifact to the ISA
+
 **Date:** 2026-04-27 19:00 UTC
 
 The ISA spec and the AI code-generation pipeline that targets it are designed
@@ -87,6 +90,7 @@ keeps the ISA's exposed complexity matched to what the pipeline can audit
 and emit correctly.
 
 ## D004 — Publish as a public GitHub repository for outside collaboration
+
 **Date:** 2026-04-27 20:16 UTC
 
 Repository will be published publicly as **`ai-targeted-isa`** to invite
@@ -120,6 +124,7 @@ backend), the toolchain gets retrofitted properly — re-derived in this
 project's context, not copy-pasted from sibling projects.
 
 ## D005 — License under Apache 2.0 (not MIT)
+
 **Date:** 2026-04-27 20:17 UTC
 
 License: **Apache License 2.0**, with a split LICENSE + COPYRIGHT file

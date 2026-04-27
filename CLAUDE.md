@@ -12,7 +12,7 @@ Human collaborators may also find it useful as a single-page orientation.
 
 This project explores what an instruction set architecture looks like when
 the code generator is AI rather than a human or a classical optimizing
-compiler. This is **D002** in `DECISIONS.md`. Treat it as the load-bearing
+compiler. This is **D002** in [`DECISIONS.md`](DECISIONS.md). Treat it as the load-bearing
 assumption: most other design choices follow from it.
 
 If you find yourself recommending a design that assumes a *human* asm
@@ -22,10 +22,11 @@ answer changes — that's the point of the project.
 
 ## Decision log is the source of truth
 
-`DECISIONS.md` records every load-bearing design choice. Read it before
-making recommendations.
+[`DECISIONS.md`](DECISIONS.md) records every load-bearing design choice.
+Read it before making recommendations.
 
 **Conventions (do not violate):**
+
 - Sequential numbering, never renumbered.
 - **Entry content is immutable.** Never edit or delete an existing entry.
 - **Supersession is bidirectional.** A new entry that supersedes an old
@@ -42,7 +43,7 @@ update old entries.
 
 ## Prior-art discipline
 
-`prior_art.md` is the synthesis of architectures whose lessons inform the
+[`prior_art.md`](prior_art.md) is the synthesis of architectures whose lessons inform the
 design. Before recommending a new ISA feature or memory-hierarchy mechanism:
 
 1. Check whether the same idea has been tried (it often has).
@@ -69,7 +70,7 @@ push back with "well, actually..."? If yes, qualify it.
 
 This applies to all prose in the repo. It does **not** apply to commit
 messages (factual records of what changed) or to entries already in
-`DECISIONS.md` (immutable once written).
+[`DECISIONS.md`](DECISIONS.md) (immutable once written).
 
 ## Don't conflate "the architecture lost" with "the ideas were wrong"
 
@@ -102,7 +103,7 @@ code-generator test do not belong.
 ## Contribution shape
 
 Outside contributions go through GitHub PRs with **Developer Certificate
-of Origin** sign-off (`git commit -s`). See `CONTRIBUTING.md` for review
+of Origin** sign-off (`git commit -s`). See [`CONTRIBUTING.md`](CONTRIBUTING.md) for review
 process. Substantive design changes require a decision-log entry as part
 of the PR.
 

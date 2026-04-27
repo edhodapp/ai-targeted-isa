@@ -11,7 +11,7 @@ The project is in design exploration. The artifacts are markdown documents
 (prior-art synthesis, decision log, design notes for ISA features and
 memory hierarchy). Useful contributions:
 
-- **Prior-art corrections.** If `prior_art.md` mischaracterizes an
+- **Prior-art corrections.** If [`prior_art.md`](prior_art.md) mischaracterizes an
   architecture you know, file an issue with the citation. We'd rather
   correct than entrench errors.
 - **Buried-architecture pointers.** Architectures we should read and
@@ -33,17 +33,50 @@ welcome in spirit but premature in practice — the design isn't settled
 enough for code to be load-bearing. Watch the decision log; when a
 prototype becomes the right next move, it'll be entered there.
 
+## Local development setup
+
+The project uses [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
+to enforce markdown style. The same check runs in CI on every push and PR.
+For fast feedback locally, install the linter and the project's pre-commit
+hook:
+
+```sh
+# 1. Install markdownlint-cli2 (one-time, system-wide)
+sudo npm install -g markdownlint-cli2
+
+# 2. Install the pre-commit hook (one-time, per clone)
+ln -sf ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
+```
+
+The hook lints staged `.md` files on every `git commit` and blocks the
+commit if any error is reported. Configuration lives in `.markdownlint.json`
+at the repo root; rules and rationale follow the
+[markdownlint rule reference](https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md).
+
+To run the lint manually against the whole tree:
+
+```sh
+markdownlint-cli2 "**/*.md"
+```
+
+When code lands later (simulator, compiler backend), the local toolchain
+will grow language-specific gates retrofitted at that point — not
+copy-pasted from sibling projects. The current shape (one tool, one hook)
+matches the current artifact (markdown only).
+
 ## Developer Certificate of Origin (DCO) sign-off
 
 Every commit (including merge commits introducing outside work) must carry
 a sign-off line:
 
-    Signed-off-by: Your Name <your@email>
+```text
+Signed-off-by: Your Name <your@email>
+```
 
 Use `git commit -s` to add it automatically. The DCO is a lightweight
 attestation — the same one used by the Linux kernel and many other open
 projects — that you have the right to submit the contribution under the
-project's license. Full text: https://developercertificate.org/
+project's license. Full text: <https://developercertificate.org/>
 
 By submitting a PR you license your contribution under the project's
 Apache License 2.0.
@@ -52,8 +85,8 @@ We do not require a Contributor License Agreement (CLA) at this time.
 
 ## Decision-log discipline
 
-`DECISIONS.md` is the project's source of truth on design choices. The
-conventions are documented in `CLAUDE.md` and at the top of the decision
+[`DECISIONS.md`](DECISIONS.md) is the project's source of truth on design choices. The
+conventions are documented in [`CLAUDE.md`](CLAUDE.md) and at the top of the decision
 log itself, but the headlines are:
 
 - **Sequential numbering, never renumbered** (D001, D002, ...).
@@ -82,7 +115,7 @@ not need a log entry.
 
 ## Honest-claim hygiene
 
-`CLAUDE.md` describes the "lab notebook, not pitch deck" stance for
+[`CLAUDE.md`](CLAUDE.md) describes the "lab notebook, not pitch deck" stance for
 project documents. The same applies to PR text and issue descriptions:
 
 - State observations as observations.

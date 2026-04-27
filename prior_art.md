@@ -158,8 +158,9 @@ the chip ran, OoO execution on commodity cores had eaten most of the
 **AI-lens delta.** Large, and the lens is unusually clean here because
 EDGE's compiler problem is almost purely a *block-formation and scheduling*
 problem. AI code generators that reason globally and can iterate against
-profiles are well-matched to it. The architectural payoff (kill the rename
-+ reorder logic that dominates modern OoO area) remains real. Of all the
+profiles are well-matched to it. The architectural payoff (killing the
+rename-and-reorder logic that dominates modern OoO area) remains real. Of
+all the
 buried ISAs, TRIPS may be the one whose "if only the compiler had been
 better" critique most cleanly inverts under the AI lens.
 
@@ -246,10 +247,10 @@ the AI doesn't change the cost ledger.
 
 ---
 
-## 7. RISC-V Vector Extension (V) and Cache-Management Extensions
-(Zicbom / Zicboz / Zicbop) — ratified 2021–2024
+## 7. RISC-V Vector Extension (V) and Cache-Management Extensions (Zicbom / Zicboz / Zicbop) — ratified 2021–2024
 
 **What.**
+
 - **V extension:** vector-length-agnostic SIMD, much in the spirit of ARM
   SVE. Software calls `vsetvl` to request a logical length; hardware tells
   it the actual number of elements per iteration. Same binary runs on
@@ -279,6 +280,7 @@ residency control, etc. Useful as a floor.
 ## 8. Apple AMX and ARM SME (2019 onward)
 
 **What.**
+
 - **Apple AMX** (undocumented, reverse-engineered ~2020): Apple Silicon
   matrix coprocessor with explicit tile registers (X, Y, Z) and
   load/store/multiply/accumulate instructions that operate on those tiles.

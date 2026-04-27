@@ -25,34 +25,35 @@ cost, that constraint relaxes. The project's central question: which
 buried hardware ideas become viable under that lens, and what does an
 ISA designed *for* an AI code generator actually look like?
 
-This is recorded as decision **D002** in `DECISIONS.md` and is treated as
-a load-bearing project axiom — change it and most of the rest unwinds.
+This is recorded as decision **D002** in [`DECISIONS.md`](DECISIONS.md) and
+is treated as a load-bearing project axiom — change it and most of the rest
+unwinds.
 
 ## Where to start reading
 
-1. **`DECISIONS.md`** — ADR-style log of every load-bearing design choice.
-   Numbering is sequential and never renumbered; entries are immutable
-   once written; supersession is annotated bidirectionally. This is the
-   source of truth on what the project has decided and why.
+1. **[`DECISIONS.md`](DECISIONS.md)** — ADR-style log of every load-bearing
+   design choice. Numbering is sequential and never renumbered; entries are
+   immutable once written; supersession is annotated bidirectionally. This
+   is the source of truth on what the project has decided and why.
 
-2. **`prior_art.md`** — synthesis pass on eight architectures whose
-   compiler-can't failure modes inform the design (Tera MTA, Itanium EPIC,
-   Cell BE, TRIPS/EDGE, Mill, CHERI, RISC-V V + cache management, Apple
-   AMX / ARM SME). Each is read through the AI-code-gen lens.
+2. **[`prior_art.md`](prior_art.md)** — synthesis pass on eight architectures
+   whose compiler-can't failure modes inform the design (Tera MTA, Itanium
+   EPIC, Cell BE, TRIPS/EDGE, Mill, CHERI, RISC-V V + cache management,
+   Apple AMX / ARM SME). Each is read through the AI-code-gen lens.
 
-3. **`CLAUDE.md`** — conventions for AI assistants working in this repo
-   (yours and ours). Captures the project axioms in a form that AI tooling
-   can read at session start.
+3. **[`CLAUDE.md`](CLAUDE.md)** — conventions for AI assistants working in
+   this repo (yours and ours). Captures the project axioms in a form that
+   AI tooling can read at session start.
 
-4. **`CONTRIBUTING.md`** — how to contribute, including DCO sign-off and
-   decision-log discipline.
+4. **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — how to contribute, including
+   DCO sign-off and decision-log discipline.
 
 ## Project status
 
 - **Stage:** design exploration. No running code.
 - **Maintainer:** Ed Hodapp (BDFL on design decisions; collaborators
   welcome on issues, PRs, and design critique).
-- **License:** Apache License 2.0 (see `LICENSE` and `COPYRIGHT`).
+- **License:** Apache License 2.0 (see [`LICENSE`](LICENSE) and [`COPYRIGHT`](COPYRIGHT)).
   Apache 2.0 was chosen over MIT specifically for the explicit patent
   grant it carries between contributors — important in CPU-architecture
   territory where ideas can be patented and where multiple contributors
@@ -72,7 +73,7 @@ Outside contribution is welcome. Most useful at this stage:
 - **Design critique on the open tasks.** The task list in our working
   notes covers ISA-feature design questions and memory-hierarchy questions.
   PRs that add markdown design notes or counter-proposals are welcome;
-  see `CONTRIBUTING.md` for the decision-log discipline.
+  see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the decision-log discipline.
 
 Implementation contributions (simulator, HDL, compiler backend) are
 welcome but premature — the design isn't settled enough for code to be
@@ -81,7 +82,7 @@ load-bearing yet. Watch the decision log for when that changes.
 ## Honest disclaimers
 
 - This is a research direction, not a product roadmap.
-- Some of the cross-cutting claims in `prior_art.md` are simplifications
+- Some of the cross-cutting claims in [`prior_art.md`](prior_art.md) are simplifications
   of multi-causal commercial outcomes. The doc flags its own uncertainty
   where it can; corrections are welcome.
 - "AI writes the assembly" is an *assumption* the project tests, not an
