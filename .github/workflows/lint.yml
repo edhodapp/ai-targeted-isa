@@ -105,3 +105,14 @@ jobs:
           else
             echo "no ontology YAML yet; sync check skipped"
           fi
+
+      - name: ontology audit
+        # Resolve every ref in the built JSON against the actual
+        # repo and apply consistency rules. Non-zero on any gap.
+        # (D010 audit-tool gate.) Skipped before the JSON exists.
+        run: |
+          if [ -f ontology/ai-targeted-isa.json ]; then
+            audit-ai-isa-ontology
+          else
+            echo "no ontology JSON yet; audit skipped"
+          fi

@@ -3,6 +3,6 @@
   "MD004": { "style": "dash" },
   "MD013": false,
   "MD024": { "siblings_only": true },
-  "MD033": { "allowed_elements": ["br", "details", "summary"] },
+  "MD033": { "allowed_elements": ["a", "br", "details", "summary"] },
   "MD041": true
 }

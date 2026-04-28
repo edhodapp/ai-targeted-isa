@@ -14,14 +14,30 @@ Coming in the second D010 commit:
   - consistency, audit, formatter, cli  (orchestrator + CLI + CI wiring)
 """
 
+from ai_isa_audit.audit import load_ontology, run_audit
+from ai_isa_audit.formatter import render_json, render_text
 from ai_isa_audit.parser import parse_ref
 from ai_isa_audit.resolver import resolve_ref
-from ai_isa_audit.types import ParsedRef, Resolution, ResolvedRef
+from ai_isa_audit.types import (
+    AuditReport,
+    ConstraintReport,
+    ParsedRef,
+    Resolution,
+    ResolvedRef,
+    Summary,
+)
 
 __all__ = [
+    "AuditReport",
+    "ConstraintReport",
     "ParsedRef",
     "Resolution",
     "ResolvedRef",
+    "Summary",
+    "load_ontology",
     "parse_ref",
+    "render_json",
+    "render_text",
     "resolve_ref",
+    "run_audit",
 ]

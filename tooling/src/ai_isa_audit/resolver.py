@@ -94,7 +94,16 @@ def _add_heading_anchors(text: str, anchors: set[str]) -> None:
 
 
 def _add_html_anchors(text: str, anchors: set[str]) -> None:
-    """Add explicit <a id="..."> / <a name="..."> tag values."""
+    """Add explicit <a id="..."> / <a name="..."> tag values.
+
+    Known v1 limitation: this regex matches occurrences inside code
+    spans / code blocks too. A heading with ``<a id="x">`` written as
+    a code-span example will produce a spurious 'x' anchor that the
+    rendered markdown does NOT actually expose. Real anchors override
+    spurious code-span matches in practice (set union), so the
+    workaround is "add the real anchor." Proper fix wants a
+    markdown-aware tokenizer; out of scope for D010 v1.
+    """
     for match in _HTML_ANCHOR_RE.finditer(text):
         anchors.add(match.group("name"))
 

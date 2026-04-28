@@ -25,6 +25,8 @@ in one step.
 
 ## D001 — Treat `~/hwdesign/cpu` as exploratory blue-sky, not a deliverable
 
+<a id="d001"></a>
+
 **Date:** 2026-04-27 18:50 UTC
 
 The directory sits in `~/hwdesign/`, sibling-shaped to `~/math/` subdirs.
@@ -41,6 +43,8 @@ rule — re-derive its pipeline rather than copy-pasting from this exploratory
 work.
 
 ## D002 — Design lens: the ideal ISA assumes AI writes the assembly
+
+<a id="d002"></a>
 
 **Date:** 2026-04-27 18:55 UTC
 
@@ -66,6 +70,8 @@ software-managed rather than hardware-guessed.
 
 ## D003 — AI-as-compiler pipeline is a co-equal design artifact to the ISA
 
+<a id="d003"></a>
+
 **Date:** 2026-04-27 19:00 UTC
 
 The ISA spec and the AI code-generation pipeline that targets it are designed
@@ -90,6 +96,8 @@ keeps the ISA's exposed complexity matched to what the pipeline can audit
 and emit correctly.
 
 ## D004 — Publish as a public GitHub repository for outside collaboration
+
+<a id="d004"></a>
 
 **Date:** 2026-04-27 20:16 UTC
 
@@ -124,6 +132,8 @@ backend), the toolchain gets retrofitted properly — re-derived in this
 project's context, not copy-pasted from sibling projects.
 
 ## D005 — License under Apache 2.0 (not MIT)
+
+<a id="d005"></a>
 
 **Date:** 2026-04-27 20:17 UTC
 
@@ -167,6 +177,8 @@ explicit goal — an AGPL repo with a "no contributions" stance and
 commercial-license-required path is incompatible with that.
 
 ## D006 — The AI-compiler pipeline IS the project's CD pipeline
+
+<a id="d006"></a>
 
 **Date:** 2026-04-27 21:25 UTC
 
@@ -220,6 +232,8 @@ for adding new artifact types. The current markdown-only state and the
 eventual asm-emission state are both points on the same trajectory.
 
 ## D007 — Adopt the iomoments YAML + pydantic + audit ontology pattern
+
+<a id="d007"></a>
 
 **Date:** 2026-04-27 22:08 UTC
 
@@ -285,6 +299,8 @@ type), the Python gates land before any pydantic file. D008 specifies
 the gate set and installation plan.
 
 ## D008 — CD-first plan for the Python tooling artifact type
+
+<a id="d008"></a>
 
 **Date:** 2026-04-27 22:08 UTC
 
@@ -365,6 +381,8 @@ do not", but the targets are clear). Step 5 is one cycle of
 deliberate-break commit + observation + revert. Total: hours, not days.
 
 ## D009 — Pydantic schema for the ai-targeted-isa ontology (v1)
+
+<a id="d009"></a>
 
 **Date:** 2026-04-28 05:13 UTC
 
@@ -475,6 +493,8 @@ Schema design (this entry) plus implementation (`types.py`, `models.py`, `build.
 
 ## D010 — Audit tool: resolve refs, enforce consistency rules
 
+<a id="d010"></a>
+
 **Date:** 2026-04-28 07:38 UTC
 
 D007 committed to the YAML/pydantic/audit pattern; D009 implemented
@@ -573,14 +593,20 @@ pytest with branch coverage at fail_under=100).
 
 ### Expected drift surfaced by first audit run
 
-The first run of the audit tool on the bootstrap YAML (task #20) will
-surface real drift that has been latent: the `rationale_ref`
-shorthands in `decisions/` (e.g. `DECISIONS.md#d001`) do not match
-the actual GitHub-generated anchors of the long heading lines (e.g.
+The first run of the audit tool on the bootstrap YAML (task #20)
+surfaced real drift that had been latent: the `rationale_ref`
+shorthands in the YAML (e.g. `DECISIONS.md#d001`) did not match the
+actual GitHub-generated anchors of the long heading lines (e.g.
 `d001--treat-hwdesigncpu-as-exploratory-blue-sky-not-a-deliverable`).
-This is a **feature, not a bug** of the audit tool: the drift exists
-and the tool is supposed to find it. Fix in a follow-up commit by
-either tightening the refs to the real anchors or adding HTML
-`<a id="d001"></a>` anchors to DECISIONS.md so the short refs
-resolve. That follow-up is its own task once the audit tool is
-operational.
+This was a **feature, not a bug** of the audit tool: the drift
+existed and the tool was supposed to find it.
+
+**Fix landed inline with this commit:** an HTML anchor of the form
+`<a id="dNNN"></a>` is inserted next to each decision heading in
+`DECISIONS.md`. The audit tool's resolver picks these up via its
+explicit-anchor regex, so the short refs in the YAML resolve cleanly.
+The decision-immutability rule in the log header is preserved in
+spirit — the HTML anchors are navigation aids for tooling, not
+edits to the decision text or rationale. (A future markdown-aware
+tokenizer would suppress the spurious "code-span anchor" issue
+documented in `resolver.py:_add_html_anchors`; out of scope for v1.)

@@ -18,7 +18,9 @@ dependencies = [
 [project.scripts]
 # Build tool (D009): YAML → validated JSON.
 build-ai-isa-ontology = "ai_targeted_isa_ontology.build:main"
-# Audit tool (D010 future) will land here.
+# Audit tool (D010): resolve refs + consistency rules; exit non-zero
+# on any gap.
+audit-ai-isa-ontology = "ai_isa_audit.cli:main"
 
 [project.optional-dependencies]
 dev = [
