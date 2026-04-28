@@ -54,21 +54,22 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "-ra",
+    "--cov=ai_targeted_isa_ontology",
     "--cov-branch",
     "--cov-report=term-missing",
 ]
 
 [tool.coverage.run]
 branch = true
-# source[] is intentionally empty until D009 names the first package.
-# Until then, pytest runs without cov sources and reports nothing,
-# which is honest for the current state.
+source = ["ai_targeted_isa_ontology"]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-# fail_under will tighten as packages land; left unset today so an
-# empty corpus doesn't double-fail.
+# 100% branch coverage is the v1 target. Per Ed's quality bar, this
+# tightens as the codebase grows; back off only with a documented
+# rationale for each unreachable path (the iomoments practice).
+fail_under = 100
 
 # ---------------------------------------------------------------------------
 # mypy --strict per the global Python quality bar. No per-file escapes

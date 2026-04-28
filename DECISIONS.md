@@ -363,3 +363,112 @@ schema content before the gates exist would violate D006.
 sibling Python projects (re-derived per "principles transfer; processes
 do not", but the targets are clear). Step 5 is one cycle of
 deliberate-break commit + observation + revert. Total: hours, not days.
+
+## D009 — Pydantic schema for the ai-targeted-isa ontology (v1)
+
+**Date:** 2026-04-28 05:13 UTC
+
+D007 committed to the YAML+pydantic+audit ontology pattern; D008
+installed the Python gates that pattern needs. This decision specifies
+the **v1 schema content**: which entity types the ontology models,
+which fields each carries, what status lifecycle they obey, and the
+ref grammar for cross-referencing the rest of the repo.
+
+The schema is intentionally minimal in v1. Sufficient to model what
+the project has *today* (decisions, design principles, the planned
+ISA features and memory mechanisms from the working task list, the
+pipeline stages from `pipeline_design.md`, and the artifact types
+those stages produce); not yet covering prior-art entries, open
+questions, or relationship/dependency graphs between features. Those
+extend the schema in later decision-log entries when the need bites.
+
+### Type primitives (cross-project compatibility)
+
+Mirror iomoments / fireasmserver where the constraint is generic:
+
+- **`SafeId`** — `Annotated[str, StringConstraints(pattern=r"^[a-zA-Z0-9_][a-zA-Z0-9_-]*$", max_length=100)]`. First-char-alnum-or-underscore prevents IDs like `-rf` from becoming shell flags downstream. Same regex as iomoments' SafeId.
+- **`ShortName`** — max 100 chars.
+- **`Description`** — max 4000 chars.
+
+### Status lifecycles
+
+Two enums — most entities share one; decisions have their own:
+
+- **`RequirementStatus`** (for design principles, ISA features, memory mechanisms, pipeline stages, artifact types):
+  - `spec` — written down; no implementation or test yet (honest default for the current markdown-only project state)
+  - `tested` — a test exercises the requirement and passes
+  - `implemented` — implementation exists, tests pass, any measurable budgets are met
+  - `deviation` — system does NOT satisfy as written; rationale required; flagged by audit for human review
+  - `n_a` — not applicable to current build / target profile
+- **`DecisionStatus`** (for decision-log entries, which have their own lifecycle):
+  - `live` — current
+  - `superseded` — annotated by a successor (`superseded_by` populated)
+  - `withdrawn` — deleted from active corpus, but the node persists for traceability
+
+### Entity types (v1)
+
+Six top-level collections in the YAML:
+
+1. **`decisions`** — formal D-numbered entries from `DECISIONS.md`. Fields: `id` (e.g. `d001`), `d_number` (int, derived), `name`, `date_utc` (ISO 8601), `summary` (≤ 4000 chars), `rationale_ref` (markdown anchor pointing into `DECISIONS.md`), `status` (DecisionStatus), `supersedes` (list of d-ids), `superseded_by` (single optional d-id). Bidirectional supersession links are validated for symmetry by the audit tool (D010 scope) — not by the schema.
+2. **`design_principles`** — load-bearing axioms (e.g. "AI writes the asm", "explicit-over-implicit"). Standard fields: `id`, `name`, `description`, `rationale` (free text + D-id refs), `status` (RequirementStatus), `implementation_refs`, `verification_refs`, plus `derives_from_decisions` (list of d-ids that establish the principle).
+3. **`isa_features`** — specific ISA mechanisms (predication, block-atomic dataflow, capabilities, per-instruction effects, etc.). Standard fields plus `category` (literal: `control_flow | data_movement | safety | parallelism | declarative_metadata`).
+4. **`memory_mechanisms`** — memory-hierarchy primitives (scratchpad tier, streaming bypass, residency control, per-call-site layout, topology placement, speculation budgets). Standard fields plus `tier` (literal: `register | scratchpad | l1 | l2 | l3 | dram | nvm | topology`).
+5. **`pipeline_stages`** — the AI-compiler pipeline stages (intent → markdown → … → asm). Standard fields plus `stage_index` (int), `inputs` (list of artifact-type ids), `outputs` (list of artifact-type ids), `gates` (list of free-text gate names; refs to gate scripts come later).
+6. **`artifact_types`** — the artifact types the pipeline emits (markdown, python, asm, etc.). Standard fields plus `file_glob` (e.g. `**/*.md`), `gate_tools` (list of CLI names like `markdownlint-cli2`, `flake8`).
+
+Common standard fields across types 2–6: `id`, `name`, `description`, `rationale`, `status`, `implementation_refs`, `verification_refs`.
+
+### Ref grammar
+
+A `Ref` is a string of the form `path[#fragment][:symbol]`:
+
+- `path` — repo-relative path; required.
+- `#fragment` — optional; for markdown files, a heading anchor (lowercase, hyphenated, GitHub-style).
+- `:symbol` — optional; for code files, a function/class/test name resolvable by grep or AST.
+
+Examples:
+
+- `DECISIONS.md#d002-design-lens-the-ideal-isa-assumes-ai-writes-the-assembly`
+- `pipeline_design.md#stages-in-their-current-and-projected-forms`
+- `tooling/src/ai_targeted_isa_ontology/models.py:ISAFeature` (future)
+- `tooling/tests/test_models.py:test_isa_feature_status_validation` (future)
+
+The schema validates ref *shape* (must match the grammar). The audit tool (D010 scope) validates that refs *resolve* against the actual repo. Per D007's "draft-first" discipline: empty `implementation_refs` plus `status="spec"` is honest; empty refs with any other status is a provable lie the audit tool flags.
+
+### Build artifact
+
+For v1, the build tool produces a single canonical JSON file (`ontology/ai-targeted-isa.json`) that is the validated, normalized form of the YAML source. The JSON is committed to git; git history is the version history. Iomoments' content-hash-gated append-only history is a richer pattern that can be retrofitted later if the simpler form proves insufficient — explicit v1 simplification noted here so the deviation from the iomoments shape is intentional, not an oversight.
+
+### Layout
+
+```text
+ontology/
+  ai-targeted-isa.yaml      # source (hand-edited)
+  ai-targeted-isa.json      # built artifact (committed; deterministic)
+tooling/
+  src/
+    ai_targeted_isa_ontology/
+      __init__.py
+      types.py              # SafeId, Description, lifecycle literals
+      models.py             # pydantic models for all entities
+      build.py              # YAML → validate → JSON
+      __main__.py           # python -m ai_targeted_isa_ontology
+  tests/
+    test_types.py
+    test_models.py
+    test_build.py
+```
+
+Console script entry (in `pyproject.toml`, added when the package lands): `build-ai-isa-ontology = "ai_targeted_isa_ontology.build:main"` — naming pattern matches iomoments' `build-iomoments-ontology` for cross-project tool-discovery consistency.
+
+### Out of scope for D009
+
+- The audit tool (`audit-ai-isa-ontology`) — its own decision-log entry **D010** when the schema is in place and the first ontology content has landed.
+- Prior-art entries as ontology nodes — `prior_art.md` stays prose for v1; converting to ontology entries can come when audit tooling can resolve the citation refs.
+- Open-question tracking as ontology nodes — the working task list serves this role today.
+- Relationship modelling (`depends_on`, `conflicts_with` between features) — added when the first concrete dependency surfaces.
+- Content-hash-gated JSON history — single overwriting JSON in v1; richer history added if needed.
+
+### Effort
+
+Schema design (this entry) plus implementation (`types.py`, `models.py`, `build.py`, tests for each, the empty initial YAML, the first JSON snapshot) is one focused session. Each `.py` file passes the full D008 gate stack before commit; the YAML is intentionally empty in v1 (just the section keys) so the audit tool would have nothing to flag. Bootstrap content (transcribing D001–D008 into ontology entries) is the next task (#20).
