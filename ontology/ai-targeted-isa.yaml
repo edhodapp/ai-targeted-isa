@@ -5,22 +5,566 @@
 # ontology/ai-targeted-isa.json (committed; deterministic; produced
 # by `build-ai-isa-ontology`).
 #
-# Empty in this commit. Bootstrap content lands as task #20 transcribes
-# D001-D008 into ontology entries.
-#
-# Conventions (from D009):
+# Conventions (from D007, D009):
 # - Six top-level sections, each a list of entries; see models.py for
 #   field shapes.
 # - Decisions follow live | superseded | withdrawn lifecycle.
 # - Other entities follow spec | tested | implemented | deviation | n_a.
-# - empty implementation_refs + status="spec" is honest (the audit tool
-#   does not flag); empty refs + any other status is a provable lie.
+# - empty implementation_refs + status="spec" is honest (the audit
+#   tool does not flag); empty refs + any other status is a provable
+#   lie. v1 leans heavily on spec status: most non-decision entries
+#   are designs / plans / rules whose enforcement is ad-hoc today.
 # - Refs follow `path[#fragment][:symbol]` grammar; the audit tool
-#   (D010 future) checks that each ref resolves against the repo.
+#   (D010 future) will validate that each ref resolves against the
+#   repo. Anchors used in v1 are short (e.g. DECISIONS.md#d001) for
+#   clarity; the audit tool can later enforce GitHub-style anchor
+#   matching.
 
-decisions: []
-design_principles: []
-isa_features: []
-memory_mechanisms: []
-pipeline_stages: []
-artifact_types: []
+# ===========================================================================
+# Decisions — formal D-numbered entries from DECISIONS.md
+# ===========================================================================
+
+decisions:
+  - id: d001
+    d_number: 1
+    name: "Treat hwdesign/cpu as exploratory blue-sky"
+    date_utc: "2026-04-27 18:50 UTC"
+    summary: >
+      The directory is for prototype/ideation work on CPU architecture,
+      not for shipping an artifact. Lighter process than CD-first
+      deliverable projects: no Makefile-level build loop, no deploy
+      target, no directory skeleton predicted in advance. Review
+      discipline still applies on functional commits. If a concrete
+      prototype matures into something downstream consumers depend on,
+      spawn a new repo CD-first per the principles-transfer rule.
+    rationale_ref: "DECISIONS.md#d001"
+    status: live
+
+  - id: d002
+    d_number: 2
+    name: "Design lens: AI writes the assembly"
+    date_utc: "2026-04-27 18:55 UTC"
+    summary: >
+      The exploration is framed by the question: what does an ISA
+      look like when the code generator is AI rather than a human or
+      a classical compiler? Buried hardware ideas (Itanium EPIC, Cell
+      BE, TRIPS, Mill) failed because compilers could not extract the
+      parallelism the ISA exposed. AI code generators reasoning at
+      whole-program scope relax that constraint and make those ideas
+      worth revisiting. This is the load-bearing axiom of the project.
+    rationale_ref: "DECISIONS.md#d002"
+    status: live
+
+  - id: d003
+    d_number: 3
+    name: "AI-compiler pipeline is co-equal to the ISA"
+    date_utc: "2026-04-27 19:00 UTC"
+    summary: >
+      The ISA spec and the AI code-generation pipeline that targets
+      it are designed together. Pipeline transitions are tracked via
+      the audit DAG; provenance for the final asm output is therefore
+      inspectable. Designed-in-isolation ISA risks repeating the
+      EPIC/Cell/TRIPS failure mode at the AI layer.
+    rationale_ref: "DECISIONS.md#d003"
+    status: live
+
+  - id: d004
+    d_number: 4
+    name: "Publish as a public GitHub repository"
+    date_utc: "2026-04-27 20:16 UTC"
+    summary: >
+      Publish ai-targeted-isa publicly to invite outside collaboration.
+      Ed Hodapp BDFL on design; collaborators contribute via GitHub
+      with DCO sign-off. Deliberately not the single-author /
+      no-contributions posture used in some sibling projects — the
+      explicit aim is to surface ideas for critique by people with
+      real Itanium / Cell / TRIPS / Mill / CHERI background.
+    rationale_ref: "DECISIONS.md#d004"
+    status: live
+
+  - id: d005
+    d_number: 5
+    name: "License under Apache 2.0 (not MIT)"
+    date_utc: "2026-04-27 20:17 UTC"
+    summary: >
+      Apache License 2.0 chosen for its explicit patent grant between
+      contributors — important in CPU-architecture territory where
+      ideas can be patented and multiple people may co-design
+      features. Standard in adjacent ecosystems (RISC-V specs, LLVM,
+      MLIR). Split LICENSE + COPYRIGHT layout adapted from Ed's
+      sibling-project convention to a contribution-welcoming posture.
+    rationale_ref: "DECISIONS.md#d005"
+    status: live
+
+  - id: d006
+    d_number: 6
+    name: "AI-compiler pipeline IS the project's CD pipeline"
+    date_utc: "2026-04-27 21:25 UTC"
+    summary: >
+      The multi-stage AI code-generation pipeline (D003) and the
+      project's CD pipeline are not two systems but one system at two
+      scales. Today's markdown-only CI is the embryonic pipeline; the
+      eventual asm-emitting pipeline is the same shape with more
+      stages. Consequence: CD-first applies per artifact type — gates
+      land before any artifact of a new type. No exceptions.
+    rationale_ref: "DECISIONS.md#d006"
+    status: live
+
+  - id: d007
+    d_number: 7
+    name: "Adopt iomoments YAML+pydantic+audit ontology pattern"
+    date_utc: "2026-04-27 22:08 UTC"
+    summary: >
+      Adopt the audit-DAG pattern proven in ~/iomoments/tooling/:
+      hand-edited YAML, pydantic validation, content-hash-gated JSON
+      snapshot, separate audit binary, status lifecycle, refs
+      resolved against the repo. Schema entities re-derived for
+      ai-targeted-isa's domain; type primitives match iomoments so
+      cross-project audit unification stays viable later.
+    rationale_ref: "DECISIONS.md#d007"
+    status: live
+
+  - id: d008
+    d_number: 8
+    name: "CD-first plan for the Python tooling artifact type"
+    date_utc: "2026-04-27 22:08 UTC"
+    summary: >
+      D007 introduces Python as the second artifact type. Per D006
+      the Python gates (flake8, pylint, mypy --strict, pytest with
+      branch coverage) land before any .py file. Six-step
+      installation: pyproject.toml + deps, venv, pre-commit hook
+      extension, CI workflow extension, deliberate-break verification
+      cycle, then first real .py file. Steps 5 and 6 are
+      deliberately not collapsible.
+    rationale_ref: "DECISIONS.md#d008"
+    status: live
+
+  - id: d009
+    d_number: 9
+    name: "Pydantic schema for the ai-targeted-isa ontology (v1)"
+    date_utc: "2026-04-28 05:13 UTC"
+    summary: >
+      Specify the v1 schema content: type primitives (SafeId,
+      ShortName, Description, matching iomoments), two status
+      lifecycles (RequirementStatus and DecisionStatus), six
+      top-level entity collections (decisions, design_principles,
+      isa_features, memory_mechanisms, pipeline_stages,
+      artifact_types), and the ref grammar. Audit tool deferred to
+      D010.
+    rationale_ref: "DECISIONS.md#d009"
+    status: live
+
+# ===========================================================================
+# Design principles — load-bearing axioms
+# ===========================================================================
+
+design_principles:
+  - id: ai_writes_asm
+    name: AI writes the assembly
+    description: >
+      The code generator targeting the ai-targeted-isa is AI reasoning
+      at whole-program scope, not a classical optimizing compiler or
+      a human asm writer. ISA design choices that assume a heroic
+      compiler (predication, exposed pipeline, block-atomic dataflow,
+      software-managed memory hierarchy) become viable under this
+      assumption.
+    rationale: >
+      Established in D002. The historical ISA arc has been
+      constrained by what compilers can extract; relaxing that
+      constraint is the project's reason for existing.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    derives_from_decisions: ["d002"]
+
+  - id: pipeline_coequal_to_isa
+    name: AI-compiler pipeline is co-equal to the ISA
+    description: >
+      The ISA spec and the AI code-generation pipeline are designed
+      together. Every ISA-feature proposal must also state how the
+      code generator emits it correctly and how the audit substrate
+      verifies the result.
+    rationale: >
+      Established in D003. Designed-in-isolation ISA risks
+      repeating the EPIC/Cell/TRIPS failure mode at the AI layer.
+    status: spec
+    implementation_refs:
+      - "pipeline_design.md"
+    verification_refs: []
+    derives_from_decisions: ["d003"]
+
+  - id: pipeline_is_cd_pipeline
+    name: AI-compiler pipeline IS the CD pipeline
+    description: >
+      The multi-stage AI code-generation pipeline and the project's
+      CD pipeline are one system at two scales. Adding a new artifact
+      type means adding a new pipeline stage — and per CD-first, the
+      gates for that type land before any artifact of that type.
+    rationale: >
+      Established in D006. Naming the two as one forecloses drift
+      into parallel provenance systems.
+    status: spec
+    implementation_refs:
+      - "pipeline_design.md"
+      - ".github/workflows/lint.yml"
+      - "scripts/pre-commit-hook.sh"
+    verification_refs: []
+    derives_from_decisions: ["d006"]
+
+  - id: explicit_over_implicit
+    name: Explicit-over-implicit semantics
+    description: >
+      No condition-flag side effects, no implicit memory ordering,
+      no microcoded gotchas. Every dependency syntactically visible.
+      AI-generated mistakes manifest as wrong instructions, never as
+      silent reordering surprises.
+    rationale: >
+      Working task #3. Identified during the prior-art synthesis as
+      the foundational design rule that makes AI-generated asm
+      reviewable. No decision-log entry yet; will get one when the
+      first ISA feature design lands and adopts this rule formally.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    derives_from_decisions: []
+
+# ===========================================================================
+# ISA features — specific mechanisms under design (working tasks #4-#9)
+# ===========================================================================
+
+isa_features:
+  - id: predication
+    name: First-class predication
+    description: >
+      Predicated execution as the primary control-flow primitive,
+      with branches as last resort. Reference ARM A32's rich
+      predication that A64 stripped because compilers underused it;
+      AI generators can use it well.
+    rationale: >
+      Working task #4. Branch mispredict cost (~15-20 cycles)
+      dominates short-loop performance; csel-shaped predication
+      avoids it. Open: how predication composes with block-atomic
+      dataflow grouping.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: control_flow
+
+  - id: structured_loops
+    name: Structured / counted loops as primitives
+    description: >
+      Lift POWER bdnz / RISC-V Zcb-style counted-loop instructions to
+      first-class. Hot loops should not need branch prediction.
+    rationale: >
+      Working task #5. Counted loops are perfectly predictable; the
+      primitive lets the front-end skip prediction entirely.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: control_flow
+
+  - id: block_atomic_dataflow
+    name: Block-atomic dataflow grouping (TRIPS-style)
+    description: >
+      Instructions name their producer instructions instead of
+      registers; hardware fires within a block as inputs arrive;
+      blocks commit atomically. Eliminates the rename + reorder
+      logic that dominates modern OoO area.
+    rationale: >
+      Working task #6. Highest-leverage / highest-risk idea per the
+      prior-art synthesis. TRIPS' compiler problem (block formation
+      under encoding constraints) inverts most cleanly under the AI
+      lens. Open: block-formation may be intrinsically hard in ways
+      AI doesn't help with — needs verification.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: parallelism
+
+  - id: scalable_simd
+    name: Wide scalable SIMD (RVV / SVE shape)
+    description: >
+      Vector-length-agnostic SIMD encoding. Software requests a
+      logical length; hardware reports the actual length per
+      iteration. Avoids fixed-width SSE/AVX microarchitectural
+      cliffs.
+    rationale: >
+      Working task #7. RVV is roughly the right shape; baseline to
+      adopt rather than research from scratch.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: parallelism
+
+  - id: capabilities
+    name: CHERI-style capabilities
+    description: >
+      Hardware-checked pointer + bounds + permissions. Capabilities
+      are unforgeable; pointer arithmetic that exceeds bounds traps.
+    rationale: >
+      Working task #8. Memory-safety value compounds when code is
+      generated faster than humans can audit; baseline safety
+      substrate independent of the code-gen story.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: safety
+
+  - id: per_instruction_effects
+    name: Per-instruction effects / region annotations
+    description: >
+      Each instruction declares the memory region(s) it reads /
+      writes / is disjoint from. Hardware parallelizes aggressively
+      without coherence traffic; AI proves the disjointness at
+      compile time.
+    rationale: >
+      Working task #9. Compilers can't supply this annotation
+      reliably; AI proving non-aliasing at whole-program scope can.
+      Major interaction with capabilities and dataflow grouping.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    category: declarative_metadata
+
+# ===========================================================================
+# Memory mechanisms — hierarchy primitives (working tasks #10-#15)
+# ===========================================================================
+
+memory_mechanisms:
+  - id: scratchpad_tier
+    name: Software-managed scratchpad as first-class ISA tier
+    description: >
+      Local store + explicit DMA, in the spirit of Cell BE SPE and
+      CUDA shared memory, but as a general-purpose CPU tier.
+      Compilers couldn't manage scratchpads at scale; AI can.
+    rationale: >
+      Working task #10. Cell's failure mode (manual DMA at scale)
+      is exactly what AI inverts.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: scratchpad
+
+  - id: streaming_bypass
+    name: Streaming loads/stores that bypass cache
+    description: >
+      One instruction encodes "I'm reading 4MB stride-64 starting at
+      X" rather than letting a hardware prefetcher guess. Saves
+      cache pollution and power.
+    rationale: >
+      Working task #11. The prefetcher is spending power guessing
+      what software already knows but can't say.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: dram
+
+  - id: residency_control
+    name: Cache residency control as ISA
+    description: >
+      Lock lines into specific levels, evict explicitly, prefetch
+      with deadline. Embedded chips have most of this; never made
+      it to general purpose.
+    rationale: >
+      Working task #12. AI-driven scheduling can use it on
+      general-purpose code.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: l2
+
+  - id: per_call_site_layout
+    name: Per-call-site data layout selection
+    description: >
+      A struct can be AoS in one hot loop and SoA in another. AI
+      emits transposes / copies at the right granularity per call
+      site; compilers can't (one type → one layout).
+    rationale: >
+      Working task #13. Implications for the ISA: efficient
+      transpose primitives, scatter-gather variants, layout-aware
+      load/store. Pipeline-stage implication: layout selection is
+      a pipeline stage.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: dram
+
+  - id: topology_visible_placement
+    name: NUMA / cache-slice / chiplet placement as ISA-visible
+    description: >
+      Slice IDs, memory-controller affinities, chiplet boundaries
+      readable and addressable. AI-scheduled code can pin working
+      sets to slices and co-locate hot code with its memory
+      controller.
+    rationale: >
+      Working task #14. Modern cores have a topology the ISA
+      pretends doesn't exist; runtime APIs (numactl,
+      sched_setaffinity) work around the gap.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: topology
+
+  - id: speculation_budgets
+    name: Per-branch speculation budgets
+    description: >
+      Tell the CPU "don't speculate this — 50/50 data-dependent" or
+      "speculate hard, 99.9% taken" based on actual program
+      semantics. Replaces weak gcc __builtin_expect / ARM hint bits.
+    rationale: >
+      Working task #15. CPU is guessing because the ISA gave it no
+      other choice; AI can supply the better signal.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    tier: topology
+
+# ===========================================================================
+# Pipeline stages — the AI-compiler pipeline as it stands today
+# ===========================================================================
+#
+# Per pipeline_design.md the pipeline today has 5 operational stages;
+# future stages (formal spec, simulator, backend, asm emission) are
+# not yet modelled — they land when the artifact types they emit do.
+
+pipeline_stages:
+  - id: intent_capture
+    name: Intent capture
+    description: >
+      Conversation between Ed and an AI assistant produces a
+      reviewable design intent statement — in conversation, in an
+      issue, or as a draft markdown section.
+    rationale: >
+      First stage; everything downstream derives from intent. Today
+      intent is conversational free-form prose; structured intent
+      schema is an open question (pipeline_design.md).
+    status: spec
+    implementation_refs:
+      - "CLAUDE.md"
+    verification_refs: []
+    stage_index: 1
+    inputs: []
+    outputs: []
+    gates: ["honest-claim discipline"]
+
+  - id: markdown_synthesis
+    name: Markdown synthesis
+    description: >
+      Draft markdown design notes (decision-log entries, design docs,
+      prior-art entries) from intent + prior art + decisions.
+    rationale: >
+      Where most design content lives today.
+    status: spec
+    implementation_refs:
+      - "CLAUDE.md"
+    verification_refs: []
+    stage_index: 2
+    inputs: []
+    outputs: ["markdown"]
+    gates: ["lab-notebook stance", "cross-references as proper links"]
+
+  - id: local_gates
+    name: Local gates (pre-commit)
+    description: >
+      markdownlint, flake8, pylint, mypy, pytest run via the
+      pre-commit hook before any commit lands locally.
+    rationale: >
+      Surface lint and quality failures locally instead of in CI.
+    status: spec
+    implementation_refs:
+      - "scripts/pre-commit-hook.sh"
+      - ".markdownlint.json"
+      - ".flake8"
+      - "pylintrc"
+      - "pyproject.toml"
+    verification_refs: []
+    stage_index: 3
+    inputs: ["markdown", "python"]
+    outputs: ["markdown", "python"]
+    gates: ["markdownlint-cli2", "flake8", "pylint", "mypy", "pytest"]
+
+  - id: ci_gates
+    name: CI gates
+    description: >
+      GitHub Actions runs the same gates as the local hook plus
+      lychee link checks and the build-tool sync check. Catches
+      commits that bypassed local hooks.
+    rationale: >
+      Independent verification at the repo level.
+    status: spec
+    implementation_refs:
+      - ".github/workflows/lint.yml"
+    verification_refs: []
+    stage_index: 4
+    inputs: ["markdown", "python"]
+    outputs: ["markdown", "python"]
+    gates:
+      - "markdownlint-cli2"
+      - "lychee"
+      - "flake8"
+      - "pylint"
+      - "mypy"
+      - "pytest"
+      - "build-ai-isa-ontology --check"
+
+  - id: promotion
+    name: Promotion to audited corpus
+    description: >
+      Once gates pass and the commit lands on main, the artifact
+      joins the project's audited corpus. Git history records the
+      promotion; the ontology DAG records provenance once D010
+      lands and the audit tool runs.
+    rationale: >
+      Marks the boundary between candidate and canonical.
+    status: spec
+    implementation_refs: []
+    verification_refs: []
+    stage_index: 5
+    inputs: ["markdown", "python"]
+    outputs: []
+    gates: []
+
+# ===========================================================================
+# Artifact types — what the pipeline emits
+# ===========================================================================
+
+artifact_types:
+  - id: markdown
+    name: Markdown design notes
+    description: >
+      The project's primary artifact today: decision-log entries,
+      design documents, prior-art synthesis, contribution guides.
+      Files at the repo root and one level deep.
+    rationale: >
+      Markdown is the right substrate for design exploration: human-
+      readable, diffable, renderable on GitHub, lintable.
+    status: spec
+    implementation_refs:
+      - ".markdownlint.json"
+      - "scripts/pre-commit-hook.sh"
+      - ".github/workflows/lint.yml"
+    verification_refs: []
+    file_glob: "**/*.md"
+    gate_tools: ["markdownlint-cli2", "lychee"]
+
+  - id: python
+    name: Python tooling
+    description: >
+      Python source for the ontology build / validate / audit tools.
+      Lives under tooling/src/ and tooling/tests/. Per D008 the
+      Python gates land before any .py file did.
+    rationale: >
+      Python is the right substrate for the schema + build tools:
+      pydantic v2 has the type system we need, the toolchain
+      (pylint, mypy --strict, pytest with branch cov) is mature.
+    status: spec
+    implementation_refs:
+      - "pyproject.toml"
+      - ".flake8"
+      - "pylintrc"
+      - "scripts/pre-commit-hook.sh"
+      - ".github/workflows/lint.yml"
+      - "scripts/setup-venv.sh"
+    verification_refs: []
+    file_glob: "tooling/**/*.py"
+    gate_tools: ["flake8", "pylint", "mypy", "pytest"]
