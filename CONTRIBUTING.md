@@ -35,34 +35,76 @@ prototype becomes the right next move, it'll be entered there.
 
 ## Local development setup
 
-The project uses [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
-to enforce markdown style. The same check runs in CI on every push and PR.
-For fast feedback locally, install the linter and the project's pre-commit
-hook:
+The project enforces a set of quality gates that run in CI on every push
+and PR. For fast feedback, install them locally and wire up the
+pre-commit hook so failures surface before they reach CI.
+
+### Markdown lint
+
+[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
+enforces the markdown style rules in `.markdownlint.json` (rules per the
+[markdownlint reference](https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md)):
 
 ```sh
-# 1. Install markdownlint-cli2 (one-time, system-wide)
 sudo npm install -g markdownlint-cli2
+```
 
-# 2. Install the pre-commit hook (one-time, per clone)
+### Python toolchain
+
+Per [D008](DECISIONS.md), the Python tooling lives under `tooling/`.
+The full gate set is flake8 + pylint (Google style) + mypy --strict +
+pytest with branch coverage. Use the setup script to create a venv and
+install dev dependencies:
+
+```sh
+./scripts/setup-venv.sh
+```
+
+The script defaults to `python -m venv` + `pip` and creates the venv at
+`tooling/.venv` (where the pre-commit hook and CI both look). To use a
+different venv tool, installer, Python interpreter, or location:
+
+```sh
+PYTHON=python3.13 ./scripts/setup-venv.sh
+VENV_TOOL=uv INSTALLER=uv ./scripts/setup-venv.sh
+VENV_DIR=$HOME/.virtualenvs/ai-isa ./scripts/setup-venv.sh
+```
+
+Supported `VENV_TOOL` values: `stdlib` (default), `virtualenv`, `uv`.
+Supported `INSTALLER` values: `pip` (default), `uv`. See the script
+header for the full knob list. If you put the venv anywhere other than
+`tooling/.venv`, the script will warn and suggest a symlink so the
+pre-commit hook can find it.
+
+### Pre-commit hook
+
+Install once per clone:
+
+```sh
 ln -sf ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
 ```
 
-The hook lints staged `.md` files on every `git commit` and blocks the
-commit if any error is reported. Configuration lives in `.markdownlint.json`
-at the repo root; rules and rationale follow the
-[markdownlint rule reference](https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md).
+The hook runs the markdown lint on staged `.md` files and the full
+Python gate set (flake8 + pylint + mypy + pytest) when any `.py` file
+is staged. Any failure blocks the commit. Configuration lives in:
 
-To run the lint manually against the whole tree:
+- `.markdownlint.json` — markdown rules
+- `.flake8` — flake8 config (max-complexity = 5, max-line = 79)
+- `pylintrc` — Google Python Style Guide config
+- `pyproject.toml` — mypy, pytest, coverage
+
+### Run the gates manually
 
 ```sh
+# Markdown:
 markdownlint-cli2 "**/*.md"
-```
 
-When code lands later (simulator, compiler backend), the local toolchain
-will grow language-specific gates retrofitted at that point — not
-copy-pasted from sibling projects. The current shape (one tool, one hook)
-matches the current artifact (markdown only).
+# Python (after venv setup, from the repo root):
+tooling/.venv/bin/flake8 tooling/src tooling/tests
+tooling/.venv/bin/pylint --rcfile=pylintrc tooling/src tooling/tests
+tooling/.venv/bin/mypy tooling/src tooling/tests
+tooling/.venv/bin/pytest
+```
 
 ## Developer Certificate of Origin (DCO) sign-off
 

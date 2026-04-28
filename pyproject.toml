@@ -1,0 +1,97 @@
+[project]
+name = "ai-targeted-isa-tooling"
+version = "0.0.0"
+description = "Tooling for the ai-targeted-isa ontology: build, audit, and consistency checks against the YAML source. Not a shipped artifact."
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Ed Hodapp", email = "ed@hodapp.com" }]
+
+# Hard floor: Python 3.11 (matches the global Python quality bar).
+# pydantic v2 for the ontology schema (D009) — matches iomoments /
+# fireasmserver lineage so cross-project audit unification stays viable.
+# pyyaml as the human-authoring surface for the ontology YAML.
+dependencies = [
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+]
+
+# Console scripts are intentionally NOT declared yet. They will be added
+# as part of D009 when the build / audit modules exist.
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "mypy>=1.11",
+    "pylint>=3.2",
+    "flake8>=7.1",
+    "types-PyYAML>=6.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Python code lives under tooling/src/, imported by short package name.
+# Tests under tooling/tests/. The repo root remains markdown-first; the
+# Python toolchain is scoped to tooling/ to keep the boundary explicit.
+[tool.setuptools]
+package-dir = { "" = "tooling/src" }
+
+[tool.setuptools.packages.find]
+where = ["tooling/src"]
+
+# ---------------------------------------------------------------------------
+# pytest: branch coverage is mandatory. The cov targets list is empty
+# today — populated by D009 when the first package lands. Tests run
+# from tooling/tests/ once they exist; the addopts here keep the
+# discipline visible from day one.
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tooling/tests"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--cov-branch",
+    "--cov-report=term-missing",
+]
+
+[tool.coverage.run]
+branch = true
+# source[] is intentionally empty until D009 names the first package.
+# Until then, pytest runs without cov sources and reports nothing,
+# which is honest for the current state.
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+# fail_under will tighten as packages land; left unset today so an
+# empty corpus doesn't double-fail.
+
+# ---------------------------------------------------------------------------
+# mypy --strict per the global Python quality bar. No per-file escapes
+# without an inline comment naming the concrete reason.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+strict = true
+python_version = "3.11"
+# files is intentionally NOT set: callers (pre-commit hook and CI)
+# pass the dirs that actually contain .py, skipping empty dirs
+# cleanly. When src and tests both have stable .py contents, this
+# can be tightened to files = ["tooling/src", "tooling/tests"].
+warn_unused_configs = true
+warn_return_any = true
+warn_unreachable = true
+disallow_any_unimported = true
+mypy_path = "tooling/src"
+
+# ---------------------------------------------------------------------------
+# flake8 has no native pyproject.toml support (as of flake8 7.x); it
+# reads .flake8 / setup.cfg. The .flake8 file at the repo root carries
+# the config. Comment kept here for discoverability.
+# ---------------------------------------------------------------------------
+# [tool.flake8]
+# max-complexity = 5
+# max-line-length = 79
