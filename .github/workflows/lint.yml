@@ -94,3 +94,14 @@ jobs:
           else
             echo "no tests yet; pytest skipped"
           fi
+
+      - name: ontology JSON in sync with YAML
+        # The committed JSON snapshot must match what the build tool
+        # would produce from the current YAML. Catches "forgot to
+        # rebuild" before it lands on main. (D009 build-tool gate.)
+        run: |
+          if [ -f ontology/ai-targeted-isa.yaml ]; then
+            build-ai-isa-ontology --check
+          else
+            echo "no ontology YAML yet; sync check skipped"
+          fi

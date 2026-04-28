@@ -1,0 +1,26 @@
+# ai-targeted-isa ontology source (D009 v1).
+#
+# Authoring surface: this YAML file. Validation: pydantic schema in
+# tooling/src/ai_targeted_isa_ontology/models.py. Build artifact:
+# ontology/ai-targeted-isa.json (committed; deterministic; produced
+# by `build-ai-isa-ontology`).
+#
+# Empty in this commit. Bootstrap content lands as task #20 transcribes
+# D001-D008 into ontology entries.
+#
+# Conventions (from D009):
+# - Six top-level sections, each a list of entries; see models.py for
+#   field shapes.
+# - Decisions follow live | superseded | withdrawn lifecycle.
+# - Other entities follow spec | tested | implemented | deviation | n_a.
+# - empty implementation_refs + status="spec" is honest (the audit tool
+#   does not flag); empty refs + any other status is a provable lie.
+# - Refs follow `path[#fragment][:symbol]` grammar; the audit tool
+#   (D010 future) checks that each ref resolves against the repo.
+
+decisions: []
+design_principles: []
+isa_features: []
+memory_mechanisms: []
+pipeline_stages: []
+artifact_types: []

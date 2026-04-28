@@ -15,8 +15,10 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
-# Console scripts are intentionally NOT declared yet. They will be added
-# as part of D009 when the build / audit modules exist.
+[project.scripts]
+# Build tool (D009): YAML → validated JSON.
+build-ai-isa-ontology = "ai_targeted_isa_ontology.build:main"
+# Audit tool (D010 future) will land here.
 
 [project.optional-dependencies]
 dev = [
@@ -62,6 +64,13 @@ addopts = [
 [tool.coverage.run]
 branch = true
 source = ["ai_targeted_isa_ontology"]
+# __main__.py is a 2-line glue file (`sys.exit(main())`) for the
+# `python -m ai_targeted_isa_ontology` invocation. Its only branch is
+# the `if __name__ == "__main__"` guard, which never fires under
+# import-based test execution. The build's main() is fully exercised
+# in test_build.py via direct calls; the module-style invocation is
+# covered by build-ai-isa-ontology console-script smoke testing.
+omit = ["*/__main__.py"]
 
 [tool.coverage.report]
 show_missing = true

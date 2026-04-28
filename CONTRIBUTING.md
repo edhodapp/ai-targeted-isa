@@ -93,6 +93,21 @@ is staged. Any failure blocks the commit. Configuration lives in:
 - `pylintrc` — Google Python Style Guide config
 - `pyproject.toml` — mypy, pytest, coverage
 
+### Ontology build
+
+The project's audit DAG is authored in `ontology/ai-targeted-isa.yaml`
+and validated/serialized to `ontology/ai-targeted-isa.json` by the
+build tool (per D009). When you edit the YAML, regenerate the JSON
+and commit both:
+
+```sh
+tooling/.venv/bin/build-ai-isa-ontology
+git add ontology/
+```
+
+CI runs `build-ai-isa-ontology --check` to guarantee the committed
+JSON matches what the YAML would produce; out-of-sync commits fail CI.
+
 ### Run the gates manually
 
 ```sh
