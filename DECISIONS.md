@@ -472,3 +472,115 @@ Console script entry (in `pyproject.toml`, added when the package lands): `build
 ### Effort
 
 Schema design (this entry) plus implementation (`types.py`, `models.py`, `build.py`, tests for each, the empty initial YAML, the first JSON snapshot) is one focused session. Each `.py` file passes the full D008 gate stack before commit; the YAML is intentionally empty in v1 (just the section keys) so the audit tool would have nothing to flag. Bootstrap content (transcribing D001–D008 into ontology entries) is the next task (#20).
+
+## D010 — Audit tool: resolve refs, enforce consistency rules
+
+**Date:** 2026-04-28 07:38 UTC
+
+D007 committed to the YAML/pydantic/audit pattern; D009 implemented
+the schema and the build tool; this decision implements the third leg
+of that pattern — the **audit tool** that closes the verification loop.
+Without it, the ontology's claims about provenance and correctness are
+hand-curated and may silently drift from the repo as files move,
+sections are renamed, and statuses bump without their refs catching up.
+
+### What the audit tool does
+
+For every entry in the built ontology JSON, the tool:
+
+1. **Resolves every `implementation_ref` and `verification_ref`**
+   against the actual repo. A ref is `path[#fragment][:symbol]`:
+   - `path` must exist as a file (or directory).
+   - `#fragment` for `.md` files must match a heading anchor extracted
+     from the file using GitHub's slugification rules.
+   - `:symbol` resolution is **deferred to D011** — v1 records the
+     symbol but does not assert presence in the file. (Symbol
+     resolution wants AST parsing for `.py`, regex for shell,
+     header-aware parsing for `.h` / `.S` — non-trivial per language;
+     out of scope here.)
+2. **Applies consistency rules** (see below).
+3. **Emits a flat report** (one `ConstraintReport` per entry) plus a
+   `Summary` (totals: rows, rows-with-gaps, refs, broken-refs,
+   consistency violations). Format: text by default, JSON via
+   `--format json`.
+4. **Returns an exit code** suitable for CI: 0 if no violations,
+   1 if any, 2 if the ontology can't be loaded.
+
+### Consistency rules (v1)
+
+- **Provable-lie rule.** For requirement-shaped entities (everything
+  except `Decision`), `status not in {spec, n_a}` with empty
+  `implementation_refs` is a violation. This is the rule from D007
+  that makes draft-first honest: claiming `tested` / `implemented` /
+  `deviation` requires *something* to point at.
+- **Supersession integrity** (Decisions only). If `D.superseded_by =
+  Y`, then `Y` must exist in the ontology and `D.id` must appear in
+  `Y.supersedes`. Symmetric: if `Y.supersedes` lists `D`, `D` must
+  exist and `D.superseded_by` must equal `Y.id`. Catches the
+  bidirectional-supersession convention from `~/.claude/CLAUDE.md`'s
+  decision-log rules drifting at the ontology level.
+- **Cross-reference resolution.** `DesignPrinciple.derives_from_decisions`
+  must reference existing `Decision` ids. `PipelineStage.inputs` and
+  `PipelineStage.outputs` must reference existing `ArtifactType` ids.
+
+### What the audit tool does **not** do (v1)
+
+- **No code-symbol resolution** (D011 future). Refs of the form
+  `tooling/src/.../models.py:ISAFeature` are recorded but not
+  cross-checked against the file content.
+- **No "is the markdown content semantically aligned with the
+  ontology entry" check.** The audit tool checks structural
+  correctness (refs resolve, statuses are honest); it cannot tell
+  whether the prose matches the rationale field.
+- **No write-back.** The tool reports; it never modifies the YAML or
+  JSON. Drift is fixed by hand and re-built via D009's build tool.
+
+### Architecture
+
+Mirrors iomoments' audit module shape so cross-project audit-tool
+extraction (task #21) stays viable:
+
+```text
+tooling/src/ai_isa_audit/
+  __init__.py
+  __main__.py
+  types.py        # ResolvedRef, ConstraintReport, Summary, AuditReport
+  parser.py       # parse_ref(str) -> ParsedRef
+  resolver.py     # resolve_ref(parsed, repo_root) -> ResolvedRef
+  consistency.py  # check_provable_lie, check_supersession, check_xrefs
+  audit.py        # run_audit(json_path, repo_root) -> AuditReport
+  formatter.py    # render_text(report), render_json(report)
+  cli.py          # main(argv) -> int
+```
+
+`audit_ai_isa_ontology` console script entry in pyproject.toml.
+
+### CI integration
+
+The `python-gates` job in `.github/workflows/lint.yml` gains an
+`audit` step after the build's `--check` step. CI is the verification
+substrate that makes `verification_refs: []` honest in v1: the audit
+tool itself, run on every push, is the recurring check that the
+ontology stays in sync with the repo.
+
+### Effort
+
+Two commits. First lands the decision entry, types, parser, resolver,
+and their tests. Second lands consistency, audit, formatter, CLI,
+console script, CI integration, and their tests. Each commit goes
+through the full D008 gate stack (flake8, pylint, mypy --strict,
+pytest with branch coverage at fail_under=100).
+
+### Expected drift surfaced by first audit run
+
+The first run of the audit tool on the bootstrap YAML (task #20) will
+surface real drift that has been latent: the `rationale_ref`
+shorthands in `decisions/` (e.g. `DECISIONS.md#d001`) do not match
+the actual GitHub-generated anchors of the long heading lines (e.g.
+`d001--treat-hwdesigncpu-as-exploratory-blue-sky-not-a-deliverable`).
+This is a **feature, not a bug** of the audit tool: the drift exists
+and the tool is supposed to find it. Fix in a follow-up commit by
+either tightening the refs to the real anchors or adding HTML
+`<a id="d001"></a>` anchors to DECISIONS.md so the short refs
+resolve. That follow-up is its own task once the audit tool is
+operational.

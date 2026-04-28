@@ -57,13 +57,14 @@ addopts = [
     "--strict-config",
     "-ra",
     "--cov=ai_targeted_isa_ontology",
+    "--cov=ai_isa_audit",
     "--cov-branch",
     "--cov-report=term-missing",
 ]
 
 [tool.coverage.run]
 branch = true
-source = ["ai_targeted_isa_ontology"]
+source = ["ai_targeted_isa_ontology", "ai_isa_audit"]
 # __main__.py is a 2-line glue file (`sys.exit(main())`) for the
 # `python -m ai_targeted_isa_ontology` invocation. Its only branch is
 # the `if __name__ == "__main__"` guard, which never fires under
